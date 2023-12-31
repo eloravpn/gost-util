@@ -25,20 +25,16 @@ class Handler(YamlAble):
             self.chain = chain
 
 
-
 @yaml_info(yaml_tag_ns="com.elora.vpn.gost")
 class Listener(YamlAble):
-    def __init__(self,
-                 auth: Auth = None,
-                 backlog: int = 1024,
-                 type_: str = "tcp"):
+    def __init__(self, auth: Auth = None, backlog: int = 1024, type_: str = "tcp"):
         """Constructor"""
 
         self.type = type_
         if auth:
             self.auth = auth
-        if backlog and type_ == "ssh":
-            self.metadata = dict(backlog = backlog)
+        if backlog and type_ == "sshd":
+            self.metadata = dict(backlog=backlog)
 
     # def __repr__(self):
     #     """String representation for prints"""
@@ -96,11 +92,11 @@ class Connector(YamlAble):
 @yaml_info(yaml_tag_ns="com.elora.vpn.gost")
 class Node(YamlAble):
     def __init__(
-            self,
-            name: str ,
-            addr: str,
-            connector: Connector= None,
-            dialer: Dialer= None,
+        self,
+        name: str,
+        addr: str,
+        connector: Connector = None,
+        dialer: Dialer = None,
     ):
         """Constructor"""
 

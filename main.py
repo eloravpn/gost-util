@@ -10,10 +10,12 @@ from yaml_models import Handler, Listener, Dialer, Auth, Node, Connector
 user_name = "gost"
 password = "gost"
 connection_limit = 1000
+back_log = 8192
 limit = "2MB"
 request_limit = "5"
 
-def generate_client_config(gost_config_file_name:str = "gost-config.csv"):
+
+def generate_client_config(gost_config_file_name: str = "gost-config.csv"):
     gost_config_file_name = "gost-config.csv"
 
     file = open(gost_config_file_name, encoding="utf8")
@@ -64,7 +66,15 @@ def generate_client_config(gost_config_file_name:str = "gost-config.csv"):
         chains.append(
             {
                 "name": f"chain-{in_port}",
-                "hops": [{"name": f"hope-1", "nodes": nodes}],
+                "hops": [
+                    {
+                        "name": f"hope-1",
+                        "selector": dict(
+                            strategy="round", maxFails=3, failTimeout="60s"
+                        ),
+                        "nodes": nodes,
+                    }
+                ],
             }
         )
 
@@ -102,16 +112,16 @@ def generate_client_config(gost_config_file_name:str = "gost-config.csv"):
 
 
 def generate_server_config(
-        csv_file,
-        user_name: str = "gost",
-        yaml_file_name: str = "gost-server.yaml",
+    csv_file,
+    user_name: str = "gost",
+    yaml_file_name: str = "gost-server.yaml",
 ):
     csvreader = csv.reader(csv_file)
 
     services = []
     chains = []
 
-    server_config_files =  defaultdict(lambda: [])
+    server_config_files = defaultdict(lambda: [])
 
     for index, row in enumerate(csvreader):
         in_port = row[0]
@@ -135,25 +145,25 @@ def generate_server_config(
                     # "rlimiter": "rlimiter-0",
                     "addr": f":{i}",
                     "handler": Handler(type_="forward"),
-                    "listener": Listener(type_="sshd", auth=Auth(username=user_name, password=password)),
-                    "forwarder": dict(nodes=[Node(
-                        name=f"node-{xui_port}",
-                        addr=f"127.0.0.1:{xui_port}"
-
-                    )])
+                    "listener": Listener(
+                        type_="sshd",
+                        auth=Auth(username=user_name, password=password),
+                        backlog=back_log,
+                    ),
+                    "forwarder": dict(
+                        nodes=[
+                            Node(name=f"node-{xui_port}", addr=f"127.0.0.1:{xui_port}")
+                        ]
+                    ),
                 }
             )
     print("Keys:", list(server_config_files.keys()))
 
     for key, value in server_config_files.items():
-        gost = {
-            "services": value
-        }
+        gost = {"services": value}
 
         with open(f"configs/gost-server-{key}.yaml", "w", encoding="utf-8") as f:
             f.write(yaml.dump(gost, sort_keys=False, default_flow_style=False))
-
-
 
 
 if __name__ == "__main__":
