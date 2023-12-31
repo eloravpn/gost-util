@@ -162,3 +162,4 @@ cython_debug/
 
 gost-config.csv
 gost.yaml
+configs/*.yaml
