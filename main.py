@@ -58,7 +58,9 @@ def generate_client_config(gost_config_file_name: str = "gost-config.csv"):
                     addr=f"{ip}:{i}",
                     connector=Connector(type_="sshd"),
                     dialer=Dialer(
-                        auth=Auth(username=user_name, password=password), type_="sshd"
+                        auth=Auth(username=user_name, password=password),
+                        type_="sshd",
+                        keepalive=True,
                     ),
                 )
             )

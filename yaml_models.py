@@ -51,29 +51,32 @@ class Listener(YamlAble):
 
 @yaml_info(yaml_tag_ns="com.elora.vpn.gost")
 class Dialer(YamlAble):
-    def __init__(self, auth: Auth, type_: str = "sshd"):
+    def __init__(
+        self,
+        auth: Auth,
+        type_: str = "sshd",
+        keepalive: bool = False,
+        ttl: int = 30,
+        retries: int = 1,
+        handshake_timeout: int = 1,
+    ):
         """Constructor"""
 
         self.auth = auth
         self.type = type_
 
-    def __repr__(self):
-        """String representation for prints"""
+        if keepalive and type_ == "sshd":
+            self.metadata = {
+                "keepalive": keepalive,
+                "keepalive.timeout": f"{ttl}s",
+                "keepalive.retries": retries,
+                "handshakeTimeout": f"{handshake_timeout}s",
+            }
 
-        return dict(type=self.type, auth=self.auth)
+        def __repr__(self):
+            """String representation for prints"""
 
-
-@yaml_info(yaml_tag_ns="com.elora.vpn.gost")
-class Connector(YamlAble):
-    def __init__(self, type_: str = "sshd"):
-        """Constructor"""
-
-        self.type = type_
-
-    def __repr__(self):
-        """String representation for prints"""
-
-        return dict(type=self.type)
+            return dict(type=self.type, auth=self.auth)
 
 
 @yaml_info(yaml_tag_ns="com.elora.vpn.gost")
